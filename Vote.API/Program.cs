@@ -1,5 +1,3 @@
-using Vote.Infrastructure;
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(options =>
@@ -16,6 +14,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddScoped<CastVoteHandler>();
+builder.Services.AddScoped<GetVoteReceiptHandler>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

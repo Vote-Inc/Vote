@@ -11,9 +11,9 @@ public sealed class VoteRepository(IAmazonDynamoDB dynamoDb) : IVoteRepository
             TableName = TableName,
             Item = new Dictionary<string, AttributeValue>
             {
-                ["VoterId"]    = new() { S = vote.VoterId.Value },
-                ["ElectionId"] = new() { S = vote.ElectionId.Value },
-                ["CreatedAt"]  = new() { S = vote.CreatedAt.ToString("O") }
+                ["VoterId"]     = new() { S = vote.VoterId.Value },
+                ["ElectionId"]  = new() { S = vote.ElectionId.Value },
+                ["CandidateId"] = new() { S = vote.CandidateId.Value }
             },
             ConditionExpression = "attribute_not_exists(VoterId)"
         };

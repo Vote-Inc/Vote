@@ -13,4 +13,7 @@ public static class VoteErrors
 
     public static readonly Error AlreadyVoted =
         new("vote.voter.already_voted", "This voter has already cast a vote in this election.");
+
+    public static readonly Error ReceiptNotFound =
+        new("vote.receipt.not_found", "No vote receipt was found for the provided receipt ID.");
 }

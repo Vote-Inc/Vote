@@ -3,6 +3,7 @@ global using Amazon.DynamoDBv2.Model;
 global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Hosting;
+global using Vote.Domain.Entities;
 global using Vote.Domain.Interfaces;
 global using Vote.Domain.Interfaces.Repositories;
 global using Vote.Domain.ValueObjects;

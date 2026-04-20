@@ -1,29 +1,50 @@
 namespace Vote.API.Controllers;
 
 [ApiController]
-[Route("vote")]
+[Route("api/votes")]
 public sealed class VoteController(
-    CastVoteHandler castVoteHandler
-    ) : ControllerBase
+    CastVoteHandler       castVoteHandler,
+    GetVoteReceiptHandler getVoteReceiptHandler) : ControllerBase
 {
+    // TODO: replace VoterId from body with sub claim once JWT is wired up
     [HttpPost("")]
-    public async Task<IActionResult> Vote(
-        [FromBody] VoteRequest request,
+    public async Task<IActionResult> CastVote(
+        [FromBody] CastVoteRequest request,
         CancellationToken ct)
     {
         var result = await castVoteHandler.Handle(
             new CastVoteCommand(request.VoterId, request.ElectionId, request.CandidateId), ct);
 
         return result.Match<IActionResult>(
-            onSuccess: Ok,
+            onSuccess: receiptId => Ok(new { receiptId }),
             onFailure: error => error.Code switch
             {
-                "vote.voter.invalid_id" or
+                "vote.voter.invalid_id"    or
                 "vote.election.invalid_id" or
-                "vote.candidate.invalid_id"   => Unauthorized(error.ToResponse()),
-                "vote.voter.already_voted"    => Conflict(error.ToResponse()),
-                _                             => BadRequest(error.ToResponse())
+                "vote.candidate.invalid_id"  => Unauthorized(error.ToResponse()),
+                "vote.voter.already_voted"   => Conflict(error.ToResponse()),
+                _                            => BadRequest(error.ToResponse())
+            });
+    }
+
+    [HttpGet("verify/{receiptId}")]
+    public async Task<IActionResult> Verify(string receiptId, CancellationToken ct)
+    {
+        var result = await getVoteReceiptHandler.Handle(new GetVoteReceiptQuery(receiptId), ct);
+
+        return result.Match<IActionResult>(
+            onSuccess: entry => Ok(new
+            {
+                electionId  = entry.ElectionId.Value,
+                candidateId = entry.CandidateId.Value,
+                timestamp   = entry.Timestamp,
+                verified    = true
+            }),
+            onFailure: error => error.Code switch
+            {
+                "vote.receipt.not_found" => NotFound(error.ToResponse()),
+                _                        => BadRequest(error.ToResponse())
             });
     }
 }
-public sealed record VoteRequest(string VoterId, string ElectionId, string CandidateId);
+
