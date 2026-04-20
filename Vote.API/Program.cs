@@ -21,6 +21,8 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddScoped<CastVoteHandler>();
 builder.Services.AddScoped<GetVoteReceiptHandler>();
 
+builder.Services.AddHealthChecks();
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -32,6 +34,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseHealthChecks("/health");
 
 app.UseCors("AllowLocalhost");
 
