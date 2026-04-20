@@ -6,14 +6,15 @@ public sealed class VoteController(
     CastVoteHandler       castVoteHandler,
     GetVoteReceiptHandler getVoteReceiptHandler) : ControllerBase
 {
-    // TODO: replace VoterId from body with sub claim once JWT is wired up
     [HttpPost("")]
     public async Task<IActionResult> CastVote(
         [FromBody] CastVoteRequest request,
         CancellationToken ct)
     {
+        var voterId = HttpContext.Request.Headers["X-Voter-Id"].FirstOrDefault();
+
         var result = await castVoteHandler.Handle(
-            new CastVoteCommand(request.VoterId, request.ElectionId, request.CandidateId), ct);
+            new CastVoteCommand(voterId ?? string.Empty, request.ElectionId, request.CandidateId), ct);
 
         return result.Match<IActionResult>(
             onSuccess: receiptId => Ok(new { receiptId }),
