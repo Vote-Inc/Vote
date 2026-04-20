@@ -1,10 +1,15 @@
 var builder = WebApplication.CreateBuilder(args);
 
+var allowedOrigins = new List<string> { "http://localhost:3000", "http://127.0.0.1:3000" };
+var frontendUrl = builder.Configuration["Frontend__Url"];
+if (!string.IsNullOrEmpty(frontendUrl))
+    allowedOrigins.Add(frontendUrl);
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowLocalhost", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "http://127.0.0.1:3000")
+        policy.WithOrigins(allowedOrigins.ToArray())
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
