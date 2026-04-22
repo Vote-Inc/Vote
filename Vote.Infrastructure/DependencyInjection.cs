@@ -12,9 +12,6 @@ public static class DependencyInjection
         services.AddKeyedSingleton<IAmazonDynamoDB>("audit", (_, _) =>
             BuildDynamoClient(configuration["AuditDynamoDB:ServiceUrl"], configuration["AuditDynamoDB:Region"]));
 
-        services.AddHostedService<DynamoDbTableInitializer>();
-        services.AddHostedService<AuditTableInitializer>();
-
         services.AddScoped<IVoteRepository,  VoteRepository>();
         services.AddScoped<IAuditRepository, AuditRepository>();
         services.AddScoped<IUnitOfWork,      DynamoDbUnitOfWork>();
