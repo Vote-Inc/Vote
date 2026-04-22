@@ -9,7 +9,7 @@ public sealed class DynamoDbTableInitializer(
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
         try
         {
             await dynamoDb.DescribeTableAsync(_tableName, cts.Token);
