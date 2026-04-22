@@ -1,26 +1,24 @@
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-
 namespace Vote.Infrastructure.Persistence;
 
 public sealed class AuditTableInitializer(
     [FromKeyedServices("audit")] IAmazonDynamoDB dynamoDb,
+    IConfiguration configuration,
     ILogger<AuditTableInitializer> logger) : IHostedService
 {
-    private const string TableName = "evoting-audit";
+    private readonly string _tableName = configuration["AuditDynamoDB:TableName"] ?? "evoting-audit";
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
         try
         {
-            await dynamoDb.DescribeTableAsync(TableName, cts.Token);
+            await dynamoDb.DescribeTableAsync(_tableName, cts.Token);
         }
         catch (ResourceNotFoundException)
         {
             await dynamoDb.CreateTableAsync(new CreateTableRequest
             {
-                TableName = TableName,
+                TableName = _tableName,
                 AttributeDefinitions =
                 [
                     new() { AttributeName = "electionId", AttributeType = ScalarAttributeType.S },
@@ -49,7 +47,7 @@ public sealed class AuditTableInitializer(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Could not initialise '{Table}' table — is DynamoDB running?", TableName);
+            logger.LogError(ex, "Could not initialise '{Table}' table — is DynamoDB running?", _tableName);
         }
     }
 

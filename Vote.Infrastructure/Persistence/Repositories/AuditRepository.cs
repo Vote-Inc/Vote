@@ -1,9 +1,10 @@
 namespace Vote.Infrastructure.Persistence.Repositories;
 
 public sealed class AuditRepository(
-    [FromKeyedServices("audit")] IAmazonDynamoDB dynamoDb) : IAuditRepository
+    [FromKeyedServices("audit")] IAmazonDynamoDB dynamoDb,
+    IConfiguration configuration) : IAuditRepository
 {
-    private const string TableName = "evoting-audit";
+    private readonly string _tableName = configuration["AuditDynamoDB:TableName"] ?? "evoting-audit";
 
     public async Task<AuditEntry> AppendAsync(
         ElectionId  electionId,
@@ -19,7 +20,7 @@ public sealed class AuditRepository(
 
         await dynamoDb.PutItemAsync(new PutItemRequest
         {
-            TableName = TableName,
+            TableName = _tableName,
             Item = new Dictionary<string, AttributeValue>
             {
                 ["electionId"]  = new() { S = entry.ElectionId.Value },
@@ -41,7 +42,7 @@ public sealed class AuditRepository(
     {
         var response = await dynamoDb.QueryAsync(new QueryRequest
         {
-            TableName              = TableName,
+            TableName              = _tableName,
             IndexName              = "receiptId-index",
             KeyConditionExpression = "receiptId = :r",
             ExpressionAttributeValues = new()
@@ -59,7 +60,7 @@ public sealed class AuditRepository(
     {
         var response = await dynamoDb.QueryAsync(new QueryRequest
         {
-            TableName              = TableName,
+            TableName              = _tableName,
             KeyConditionExpression = "electionId = :e",
             ExpressionAttributeValues = new()
             {

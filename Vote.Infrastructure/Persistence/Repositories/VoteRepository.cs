@@ -1,21 +1,21 @@
 namespace Vote.Infrastructure.Persistence.Repositories;
 
-public sealed class VoteRepository(IAmazonDynamoDB dynamoDb) : IVoteRepository
+public sealed class VoteRepository(IAmazonDynamoDB dynamoDb, IConfiguration configuration) : IVoteRepository
 {
-    private const string TableName = "Votes";
+    private readonly string _tableName = configuration["DynamoDB:TableName"] ?? "evoting-votes";
 
     public async Task AddAsync(Domain.Entities.Vote vote, CancellationToken ct = default)
     {
         var request = new PutItemRequest
         {
-            TableName = TableName,
+            TableName = _tableName,
             Item = new Dictionary<string, AttributeValue>
             {
-                ["VoterId"]     = new() { S = vote.VoterId.Value },
-                ["ElectionId"]  = new() { S = vote.ElectionId.Value },
-                ["CandidateId"] = new() { S = vote.CandidateId.Value }
+                ["electionId"]  = new() { S = vote.ElectionId.Value },
+                ["voterHash"]   = new() { S = Hash.Of(vote.VoterId.Value).Value },
+                ["candidateId"] = new() { S = vote.CandidateId.Value }
             },
-            ConditionExpression = "attribute_not_exists(VoterId)"
+            ConditionExpression = "attribute_not_exists(voterHash)"
         };
 
         await dynamoDb.PutItemAsync(request, ct);
@@ -28,13 +28,13 @@ public sealed class VoteRepository(IAmazonDynamoDB dynamoDb) : IVoteRepository
     {
         var request = new GetItemRequest
         {
-            TableName = TableName,
+            TableName = _tableName,
             Key = new Dictionary<string, AttributeValue>
             {
-                ["VoterId"]    = new() { S = voterId.Value },
-                ["ElectionId"] = new() { S = electionId.Value }
+                ["electionId"] = new() { S = electionId.Value },
+                ["voterHash"]  = new() { S = Hash.Of(voterId.Value).Value }
             },
-            ProjectionExpression = "VoterId"
+            ProjectionExpression = "electionId"
         };
 
         var response = await dynamoDb.GetItemAsync(request, ct);
