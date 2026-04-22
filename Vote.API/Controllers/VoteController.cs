@@ -28,10 +28,10 @@ public sealed class VoteController(
             });
     }
 
-    [HttpGet("verify/{receiptId}")]
-    public async Task<IActionResult> Verify(string receiptId, CancellationToken ct)
+    [HttpPost("verify")]
+    public async Task<IActionResult> Verify([FromBody] VerifyRequest request, CancellationToken ct)
     {
-        var result = await getVoteReceiptHandler.Handle(new GetVoteReceiptQuery(receiptId), ct);
+        var result = await getVoteReceiptHandler.Handle(new GetVoteReceiptQuery(request.ReceiptId), ct);
 
         return result.Match<IActionResult>(
             onSuccess: entry => Ok(new
